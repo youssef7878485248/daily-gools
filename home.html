@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Interface</title>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff7e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .button {
+            background-color: #00bcd4;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 250px;
+            text-align: center;
+            transition: transform 0.2s ease;
+            animation: fadeIn 1s ease-out;
+            position: relative;
+        }
+        
+        .button:hover {
+            transform: scale(1.1);
+        }
+        
+        .button:active {
+            transform: scale(0.98);
+        }
+        
+        .button:focus {
+            outline: 3px solid #ff9800;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .button:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            .button {
+                width: 200px;
+                font-size: 20px;
+                padding: 10px 20px;
+            }
+        }
+
+        .button-icon {
+            margin-right: 10px;
+        }
+        
+        .exit-button {
+            background-color: #f44336;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            border-radius: 10px;
+            animation: fadeIn 0.3s;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 500px;
+            cursor: pointer;
+        }
+
+        .confirm {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .cancel {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.button');
+            const lastVisitedPage = localStorage.getItem('lastVisitedPage');
+            const modal = document.getElementById('exitModal');
+            const closeModal = document.getElementsByClassName('close')[0];
+            const confirmExitButton = document.getElementById('confirmExit');
+            const cancelExitButton = document.getElementById('cancelExit');
+
+            buttons.forEach(button => {
+                if (button.getAttribute('onclick').includes(lastVisitedPage)) {
+                    button.style.backgroundColor = '#ff9800';
+                }
+
+                button.addEventListener('click', () => {
+                    const targetPage = button.getAttribute('onclick').split("'")[1];
+                    localStorage.setItem('lastVisitedPage', targetPage);
+                });
+            });
+
+            closeModal.onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            confirmExitButton.onclick = () => {
+                window.close();
+            };
+
+            cancelExitButton.onclick = () => {
+                modal.style.display = 'none';
+            };
+        });
+
+        function confirmExit() {
+            document.getElementById('exitModal').style.display = 'flex';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <button class="button" onclick="window.location.href='goals.html'">
+            <span class="button-icon">📅</span> Daily Goals
+            <span class="tooltip">Navigate to Daily Goals</span>
+        </button>
+        <button class="button" onclick="window.location.href='tasks.html'">
+            <span class="button-icon">📝</span> Daily Tasks
+            <span class="tooltip">Navigate to Daily Tasks</span>
+        </button>
+        <button class="button" onclick="window.location.href='timer.html'">
+            <span class="button-icon">⏱</span> Timer
+            <span class="tooltip">Navigate to Timer</span>
+        </button>
+        <button class="button exit-button" onclick="confirmExit()">
+            <span class="button-icon"></span> Exit
+            <span class="tooltip">Exit Application</span>
+        </button>
+    </div>
+
+    <!-- The Modal -->
+    <div id="exitModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Are you sure you want to exit the application?</p>
+            <div class="modal-buttons">
+                <button id="confirmExit" class="modal-button confirm">Yes</button>
+                <button id="cancelExit" class="modal-button cancel">No</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

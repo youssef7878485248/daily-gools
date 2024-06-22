@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intervalle de Travail</title>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes dustEffect {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) translateY(-50px);
+            }
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e7f0f8;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .go-back {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .go-back img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .timer {
+            background-color: #d3d3d3;
+            border-radius: 20px;
+            padding: 60px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .time {
+            font-size: 72px;
+            font-weight: 600;
+        }
+
+        .icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background-image: url('https://media-public.canva.com/anZ7c/MAEXl9anZ7c/1/tl.png');
+            background-size: cover;
+            cursor: pointer;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        button {
+            font-size: 24px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+        }
+        
+        .edit {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .save {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .supp {
+            background-color: #FF3131;
+            color: white;
+        }
+        
+        .stop-resume {
+            background-color: #F4C711;
+            color: white;
+        }
+
+        .message {
+            font-size: 24px;
+            color: red;
+            margin-top: 20px;
+        }
+
+        .timer input {
+            font-size: 72px;
+            font-weight: 600;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            outline: none;
+            width: calc(100% - 20px);
+            text-align: center;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .timer.edit-mode .time {
+            display: none;
+        }
+
+        .timer.edit-mode input {
+            display: block;
+        }
+
+        .countdown-animation {
+            animation: dustEffect 1s ease-in-out;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="go-back" onclick="window.location.href='home.html'">
+            <img src="https://cdn-icons-png.flaticon.com/512/2459/2459427.png" alt="Go Back">
+            <span>Go Back</span>
+        </div>
+        <h1>Intervalle de Travail</h1>
+        <div class="timer" id="timerContainer">
+            <span class="time" id="timer">01:00:00</span>
+            <input type="text" id="timerInput" value="01:00:00">
+            <div class="icon" id="soundUploadIcon"></div>
+        </div>
+        <div class="buttons">
+            <button class="edit" id="editButton">Edit</button>
+            <button class="stop-resume" id="stopResumeButton" onclick="toggleTimer()">Start</button>
+            <button class="supp" onclick="resetTimer()">Reset</button>
+        </div>
+        <input type="file" id="soundUpload" accept="audio/*" style="display: none;">
+        <div id="message" class="message"></div>
+    </div>
+    <script>
+        let timer;
+        let isRunning = false;
+        let timeRemaining = localStorage.getItem('timeRemaining') ? parseInt(localStorage.getItem('timeRemaining'), 10) : 3600; // 60 minutes in seconds
+        const timerElement = document.getElementById('timer');
+        const timerInput = document.getElementById('timerInput');
+        const timerContainer = document.getElementById('timerContainer');
+        const messageElement = document.getElementById('message');
+        const editButton = document.getElementById('editButton');
+        let audio = new Audio(localStorage.getItem('audioPath') || 'music.mp3'); // Replace with the path to your sound file
+        const soundUploadIcon = document.getElementById('soundUploadIcon');
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(timeRemaining / 3600);
+            const minutes = Math.floor((timeRemaining % 3600) / 60);
+            const seconds = timeRemaining % 60;
+            const timeString = `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            timerElement.innerText = timeString;
+            timerInput.value = timeString;
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timer);
+                document.getElementById('stopResumeButton').innerText = 'Resume';
+            } else {
+                timer = setInterval(() => {
+                    if (timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                        localStorage.setItem('timeRemaining', timeRemaining);
+                        if (timeRemaining <= 10) {
+                            timerElement.classList.add('countdown-animation');
+                        }
+                    } else {
+                        clearInterval(timer);
+                        isRunning = false;
+                        document.getElementById('stopResumeButton').innerText = 'Start';
+                        messageElement.innerText = 'Time is up!';
+                        audio.play();
+                    }
+                }, 1000);
+                document.getElementById('stopResumeButton').innerText = 'Stop';
+            }
+            isRunning = !isRunning;
+            localStorage.setItem('isRunning', isRunning);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            timeRemaining = 3600; // Reset to 60 minutes
+            updateTimerDisplay();
+            document.getElementById('stopResumeButton').innerText = 'Start';
+            messageElement.innerText = '';
+            localStorage.removeItem('timeRemaining');
+            localStorage.setItem('isRunning', isRunning);
+            timerElement.classList.remove('countdown-animation');
+        }
+
+        editButton.addEventListener('click', () => {
+            if (editButton.innerText === 'Edit') {
+                timerContainer.classList.add('edit-mode');
+                editButton.innerText = 'Save';
+                editButton.classList.remove('edit');
+                editButton.classList.add('save');
+                timerInput.focus();
+            } else {
+                const timeParts = timerInput.value.split(':');
+                if (timeParts.length === 3) {
+                    const newHours = parseInt(timeParts[0], 10);
+                    const newMinutes = parseInt(timeParts[1], 10);
+                    const newSeconds = parseInt(timeParts[2], 10);
+                    if (!isNaN(newHours) && !isNaN(newMinutes) && !isNaN(newSeconds)) {
+                        timeRemaining = (newHours * 3600) + (newMinutes * 60) + newSeconds;
+                        updateTimerDisplay();
+                        localStorage.setItem('timeRemaining', timeRemaining);
+                    }
+                }
+                timerContainer.classList.remove('edit-mode');
+                editButton.innerText = 'Edit';
+                editButton.classList.remove('save');
+                editButton.classList.add('edit');
+            }
+        });
+
+        document.getElementById('soundUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    audio = new Audio(e.target.result);
+                    localStorage.setItem('audioPath', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        soundUploadIcon.addEventListener('click', () => {
+            document.getElementById('soundUpload').click();
+        });
+
+        // Restore the timer state on load
+        if (localStorage.getItem('isRunning') === 'true') {
+            toggleTimer();
+        }
+
+        updateTimerDisplay();
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.key === ' ') {
+                toggleTimer();
+            } else if (event.key.toLowerCase() === 'r') {
+                resetTimer();
+            } else if (event.key.toLowerCase() === 'e') {
+                editButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
